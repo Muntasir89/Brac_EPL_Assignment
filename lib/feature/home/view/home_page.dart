@@ -1,6 +1,6 @@
 import 'package:branc_epl/core/common/widgets/common_text_widget.dart';
 import 'package:branc_epl/feature/home/models/transaction_model.dart';
-import 'package:branc_epl/feature/home/widget/recent_transaction_item.dart';
+import 'package:branc_epl/feature/home/widget/transaction_history_item.dart';
 import 'package:branc_epl/styles/colors.dart';
 import 'package:branc_epl/styles/textstyles.dart';
 import 'package:branc_epl/utils/dimens/dimensions.dart';
@@ -173,7 +173,7 @@ class HomePage extends StatelessWidget {
                     return const SizedBox(height: 80); // Space for bottom nav
                   }
                   final transaction = transactions[index];
-                  return RecentTransactionItem(
+                  return TransactionHistoryItem(
                     icon: transaction.icon,
                     iconColor: transaction.iconColor,
                     iconBg: transaction.iconBg,

@@ -4,8 +4,8 @@ import 'package:branc_epl/styles/textstyles.dart';
 import 'package:branc_epl/utils/dimens/dimensions.dart';
 import 'package:flutter/material.dart';
 
-class RecentTransactionItem extends StatelessWidget {
-  const RecentTransactionItem({
+class TransactionHistoryItem extends StatelessWidget {
+  const TransactionHistoryItem({
     super.key,
     required this.icon,
     required this.iconColor,
