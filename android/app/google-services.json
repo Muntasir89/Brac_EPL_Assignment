@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "88683421010",
+    "project_id": "brac-epl-assignment",
+    "storage_bucket": "brac-epl-assignment.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88683421010:android:49a228786e9a1aa6b76e8b",
+        "android_client_info": {
+          "package_name": "com.example.branc_epl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3A9ci-FzNkG2FHqKZwiyV2f0njIcZqzY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
