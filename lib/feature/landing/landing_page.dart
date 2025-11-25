@@ -1,3 +1,4 @@
+import 'package:branc_epl/feature/home/view/home_page.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/bloc/navigation_bloc.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/custom_bottom_appbar.dart';
 import 'package:branc_epl/styles/colors.dart';
@@ -8,7 +9,7 @@ class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
   static final screens = [
-    Center(child: Text("Home")),
+    HomePage(),
     Center(child: Text("My Funds")),
     Center(child: Text("Transaction History")),
     Center(child: Text("Profile")),
