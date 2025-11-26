@@ -73,7 +73,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           .collection('users')
           .doc(userCredential.user!.uid)
           .get();
-      return UserModel(id: 'id', email: email, name: 'name');
+      return UserModel(
+        id: userCredential.user!.uid,
+        email: email,
+        name: userData['name'],
+      );
     } on FirebaseAuthException catch (e) {
       throw ServerException(e.message ?? 'Authentication error');
     } catch (e) {

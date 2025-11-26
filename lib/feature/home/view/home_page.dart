@@ -156,40 +156,39 @@ class _HomePageState extends State<HomePage> {
                       child: CircularProgressIndicator(color: blueOriginal),
                     )
                   : transactionError != null
-                      ? Center(
-                          child: CommonTextWidget(
-                            text: transactionError!,
-                            style: f14w400(color: rejectedColor),
-                          ),
-                        )
-                      : transactions.isEmpty
-                          ? Center(
-                              child: CommonTextWidget(
-                                text: 'No transactions yet',
-                                style: f14w400(color: blackShade3),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: transactions.length + 1,
-                              itemBuilder: (context, index) {
-                                if (index == transactions.length) {
-                                  return const SizedBox(height: 80);
-                                }
-                                final transaction = transactions[index];
-                                return TransactionHistoryItem(
-                                  icon: transaction.icon,
-                                  iconColor: transaction.iconColor,
-                                  iconBg: transaction.iconBg,
-                                  title: transaction.title,
-                                  subtitle: transaction.subtitle,
-                                  date: transaction.date,
-                                  amount: transaction.formattedAmount,
-                                  amountColor: transaction.amountColor,
-                                );
-                              },
-                            ),
+                  ? Center(
+                      child: CommonTextWidget(
+                        text: transactionError!,
+                        style: f14w400(color: rejectedColor),
+                      ),
+                    )
+                  : transactions.isEmpty
+                  ? Center(
+                      child: CommonTextWidget(
+                        text: 'No transactions yet',
+                        style: f14w400(color: blackShade3),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: transactions.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == transactions.length) {
+                          return const SizedBox(height: 80);
+                        }
+                        final transaction = transactions[index];
+                        return TransactionHistoryItem(
+                          icon: transaction.icon,
+                          iconColor: transaction.iconColor,
+                          iconBg: transaction.iconBg,
+                          title: transaction.title,
+                          subtitle: transaction.subtitle,
+                          date: transaction.date,
+                          amount: transaction.formattedAmount,
+                          amountColor: transaction.amountColor,
+                        );
+                      },
+                    ),
             ),
           ],
         ),
