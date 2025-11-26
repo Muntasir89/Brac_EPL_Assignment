@@ -2,6 +2,7 @@ import 'package:branc_epl/core/error/exceptions.dart';
 import 'package:branc_epl/core/error/failures.dart';
 import 'package:branc_epl/feature/home/data/datasources/transaction_remote_data_source.dart';
 import 'package:branc_epl/feature/home/domain/repository/transaction_repository.dart';
+import 'package:branc_epl/feature/home/models/balance_model.dart';
 import 'package:branc_epl/feature/home/models/transaction_model.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -19,6 +20,18 @@ class TransactionRepositoryImpl implements TransactionRepository {
         userId,
       );
       return right(transactions);
+    } on ServerException catch (e) {
+      return left(Failure(e.message));
+    } catch (e) {
+      return left(Failure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BalanceModel>> getBalance(String userId) async {
+    try {
+      final balance = await transactionRemoteDataSource.getBalance(userId);
+      return right(balance);
     } on ServerException catch (e) {
       return left(Failure(e.message));
     } catch (e) {

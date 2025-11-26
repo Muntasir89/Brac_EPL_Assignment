@@ -26,3 +26,9 @@ final class TransactionAddSuccess extends TransactionState {
 }
 
 final class TransactionDeleteSuccess extends TransactionState {}
+
+final class TransactionBalanceSuccess extends TransactionState {
+  final BalanceModel balance;
+
+  TransactionBalanceSuccess(this.balance);
+}

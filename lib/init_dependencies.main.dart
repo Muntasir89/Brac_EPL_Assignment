@@ -13,6 +13,7 @@ import 'package:branc_epl/feature/home/data/repositories/transaction_repository_
 import 'package:branc_epl/feature/home/domain/repository/transaction_repository.dart';
 import 'package:branc_epl/feature/home/domain/usecases/add_transaction.dart';
 import 'package:branc_epl/feature/home/domain/usecases/delete_transaction.dart';
+import 'package:branc_epl/feature/home/domain/usecases/get_balance.dart';
 import 'package:branc_epl/feature/home/domain/usecases/get_transactions.dart';
 import 'package:branc_epl/feature/home/presentation/bloc/transaction_bloc.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/bloc/navigation_bloc.dart';
@@ -129,12 +130,14 @@ void _initTransaction() {
     ..registerFactory(() => GetTransactions(serviceLocator()))
     ..registerFactory(() => AddTransaction(serviceLocator()))
     ..registerFactory(() => DeleteTransaction(serviceLocator()))
+    ..registerFactory(() => GetBalance(serviceLocator()))
     // Bloc
     ..registerLazySingleton(
       () => TransactionBloc(
         getTransactions: serviceLocator(),
         addTransaction: serviceLocator(),
         deleteTransaction: serviceLocator(),
+        getBalance: serviceLocator(),
       ),
     );
 }

@@ -1,8 +1,11 @@
+import 'package:branc_epl/feature/home/models/balance_model.dart';
 import 'package:branc_epl/feature/home/models/transaction_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract interface class TransactionRemoteDataSource {
   Future<List<TransactionModel>> getTransactions(String userId);
+
+  Future<BalanceModel> getBalance(String userId);
 
   Future<TransactionModel> addTransaction({
     required String userId,
@@ -39,6 +42,43 @@ class TransactionRemoteDataSourceImpl implements TransactionRemoteDataSource {
       return transactions;
     } catch (e) {
       throw Exception('Failed to fetch transactions: $e');
+    }
+  }
+
+  @override
+  Future<BalanceModel> getBalance(String userId) async {
+    try {
+      final querySnapshot = await firebaseFirestore
+          .collection('transactions')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      // Calculate balance from transactions
+      double totalDeposits = 0.0;
+      double totalWithdrawals = 0.0;
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final amount = (data['amount'] ?? 0).toDouble();
+        final isDeposit = data['isDeposit'] ?? false;
+
+        if (isDeposit) {
+          totalDeposits += amount;
+        } else {
+          totalWithdrawals += amount;
+        }
+      }
+
+      final currentBalance = totalDeposits - totalWithdrawals;
+      // Available balance: 80% of current balance
+      final availableBalance = currentBalance * 0.8;
+
+      return BalanceModel(
+        currentBalance: currentBalance,
+        availableBalance: availableBalance,
+      );
+    } catch (e) {
+      throw Exception('Failed to fetch balance: $e');
     }
   }
 

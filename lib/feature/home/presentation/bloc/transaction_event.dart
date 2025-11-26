@@ -32,3 +32,9 @@ final class TransactionDelete extends TransactionEvent {
 
   TransactionDelete(this.transactionId);
 }
+
+final class TransactionGetBalance extends TransactionEvent {
+  final String userId;
+
+  TransactionGetBalance(this.userId);
+}
