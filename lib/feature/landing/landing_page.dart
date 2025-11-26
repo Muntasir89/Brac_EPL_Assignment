@@ -2,6 +2,7 @@ import 'package:branc_epl/feature/home/view/home_page.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/bloc/navigation_bloc.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/custom_bottom_appbar.dart';
 import 'package:branc_epl/feature/my_funds/view/my_funds_page.dart';
+import 'package:branc_epl/feature/profile/view/profile_page.dart';
 import 'package:branc_epl/feature/transaction_history/view/transaction_history_page.dart';
 import 'package:branc_epl/styles/colors.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ class LandingPage extends StatelessWidget {
     HomePage(),
     MyFundsPage(),
     TransactionHistoryPage(),
-    Center(child: Text("Profile")),
+    ProfilePage(),
   ];
 
   @override

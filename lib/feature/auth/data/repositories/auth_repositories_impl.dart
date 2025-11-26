@@ -4,7 +4,7 @@ import 'package:branc_epl/core/error/exceptions.dart';
 import 'package:branc_epl/core/network/connection_checker.dart';
 import 'package:branc_epl/feature/auth/data/models/user_model.dart';
 import 'package:branc_epl/core/common/entities/user.dart';
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 
 import 'package:branc_epl/core/error/failures.dart';
 import 'package:branc_epl/feature/auth/data/datasources/auth_remote_data_source.dart';
@@ -59,27 +59,38 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, User>> currentUser() async {
     try {
       if (!await (connectionChecker.isConnected)) {
-        // final session = remoteDataSource.currentUserSession;
-
-        // if (session == null) {
-        //   return left(Failure('User not logged in'));
-        // }
-
-        return right(
-          UserModel(
-            id: "session.user.id",
-            email: "session.user.email ?? ''",
-            name: '',
-          ),
-        );
+        return left(Failure('No internet connection'));
       }
-      final user = await remoteDataSource.getCurrentUserData();
-      if (user == null) {
-        return left(Failure('User not logged in!'));
+
+      final currentUser = await remoteDataSource.getCurrentUserData();
+
+      if (currentUser == null) {
+        return left(Failure('User not logged in'));
       }
-      return right(user);
+      return right(
+        UserModel(
+          id: currentUser.id,
+          email: currentUser.email,
+          name: currentUser.name,
+        ),
+      );
     } on ServerException catch (error) {
       return left(Failure(error.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> logout() async {
+    try {
+      if (!await (connectionChecker.isConnected)) {
+        return left(Failure('No internet connection'));
+      }
+      await remoteDataSource.signOut();
+      return right(null);
+    } on ServerException catch (error) {
+      return left(Failure(error.message));
+    } catch (error) {
+      return left(Failure(error.toString()));
     }
   }
 }

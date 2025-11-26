@@ -91,7 +91,7 @@ class CommonInputField extends StatelessWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
     this.onSuffixIconPressed,
     this.maxLines = 1,
-    this.backgroundColor = Colors.transparent, // Default background color
+    this.backgroundColor = frameBg, // Default background color
     this.suffixIconAlwaysVisible =
         false, // Default value for suffixIcon visibility
     this.showLetterCounter = true,
@@ -114,7 +114,7 @@ class CommonInputField extends StatelessWidget {
           margin: padding ?? EdgeInsets.zero,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: backgroundColor, // Apply the background color here
+            // color: backgroundColor, // Apply the background color here
             borderRadius: borderRadius,
             // border: Border.all(color: borderColor),
           ),
@@ -130,6 +130,7 @@ class CommonInputField extends StatelessWidget {
               maxLength: maxLength,
               keyboardType: inputType,
               scrollPadding: scPadding,
+
               inputFormatters: [
                 // default formatter to deny emojis
                 FilteringTextInputFormatter.deny(
@@ -168,6 +169,8 @@ class CommonInputField extends StatelessWidget {
                   ? Text('$currentLength/$maxLength')
                   : null,
               decoration: InputDecoration(
+                fillColor: backgroundColor,
+                filled: true,
                 prefixIcon: prefixIcon,
                 contentPadding: contentPadding,
                 labelText: labelText,

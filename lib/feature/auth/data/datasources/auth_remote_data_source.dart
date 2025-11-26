@@ -1,9 +1,9 @@
 import 'package:branc_epl/core/error/exceptions.dart';
 import 'package:branc_epl/feature/auth/data/models/user_model.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 abstract interface class AuthRemoteDataSource {
-  // Session? get currentUserSession;
   Future<UserModel> signUpWithEmailPassword({
     required String name,
     required String email,
@@ -16,14 +16,13 @@ abstract interface class AuthRemoteDataSource {
   });
 
   Future<UserModel?> getCurrentUserData();
+  Future<void> signOut();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  // final SupabaseClient supabaseClient;
-  // AuthRemoteDataSourceImpl(this.supabaseClient);
+  final FirebaseFirestore firestore;
+  AuthRemoteDataSourceImpl(this.firestore);
 
-  @override
-  // Session? get currentUserSession => supabaseClient.auth.currentSession;
   @override
   Future<UserModel> signUpWithEmailPassword({
     required String name,
@@ -32,19 +31,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       print("name : $name");
-      // final response = await supabaseClient.auth.signUp(
-      //   password: password,
-      //   email: email,
-      //   data: {'name': name},
-      // );
 
-      // if (response.user == null) {
-      //   throw const ServerException('User is null!');
-      // }
-      // return UserModel.fromJson(response.user!.toJson());
-      return UserModel(id: 'id', email: email, name: name);
-      // } on AuthException catch (e) {
-      //   throw ServerException(e.message);
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user == null) {
+        throw const ServerException('User is null!');
+      }
+      await firestore.collection('users').doc(userCredential.user!.uid).set({
+        'name': name,
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Update display name
+      await userCredential.user!.updateDisplayName(name);
+
+      return UserModel(id: userCredential.user!.uid, email: email, name: name);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(e.message ?? 'Authentication error');
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -56,18 +61,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      //   final response = await supabaseClient.auth.signInWithPassword(
-      //     password: password,
-      //     email: email,
-      //   );
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
 
-      //   if (response.user == null) {
-      //     throw const ServerException('User is null!');
-      //   }
-      //   return UserModel.fromJson(response.user!.toJson());
-      // } on AuthException catch (e) {
-      //   throw ServerException(e.message);
+      if (userCredential.user == null) {
+        throw const ServerException('User not found!');
+      }
+
+      // Get user data from Firestore
+      final userData = await firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
       return UserModel(id: 'id', email: email, name: 'name');
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(e.message ?? 'Authentication error');
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -76,16 +84,30 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel?> getCurrentUserData() async {
     try {
-      // if (currentUserSession != null) {
-      //   final userData = await supabaseClient
-      //       .from('profiles')
-      //       .select()
-      //       .eq('id', currentUserSession!.user.id);
-      //   return UserModel.fromJson(
-      //     userData.first,
-      //   ).copyWith(email: currentUserSession!.user.email);
-      // }
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final userData = await firestore
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+        if (userData.exists && userData.data() != null) {
+          return UserModel(
+            id: currentUser.uid,
+            email: currentUser.email ?? '',
+            name: currentUser.displayName ?? '',
+          );
+        }
+      }
       return null;
+    } catch (error) {
+      throw ServerException(error.toString());
+    }
+  }
+
+  @override
+  Future<void> signOut() {
+    try {
+      return FirebaseAuth.instance.signOut();
     } catch (error) {
       throw ServerException(error.toString());
     }

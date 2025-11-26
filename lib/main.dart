@@ -1,4 +1,7 @@
+import 'package:branc_epl/core/common/cubit/app_user/app_user_cubit.dart';
 import 'package:branc_epl/core/theme/theme.dart';
+import 'package:branc_epl/feature/auth/presentation/bloc/auth_bloc.dart';
+import 'package:branc_epl/feature/auth/presentation/pages/login_page.dart';
 import 'package:branc_epl/feature/landing/landing_page.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/bloc/navigation_bloc.dart';
 import 'package:branc_epl/init_dependencies.main.dart';
@@ -11,12 +14,8 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        // BlocProvider(
-        //   create: (_) => serviceLocator<AppUserCubit>(),
-        // ),
-        // BlocProvider(
-        //   create: (_) => serviceLocator<AuthBloc>(),
-        // ),
+        BlocProvider(create: (_) => serviceLocator<AppUserCubit>()),
+        BlocProvider(create: (_) => serviceLocator<AuthBloc>()),
         // BlocProvider(
         //   create: (_) => serviceLocator<BlogBloc>(),
         // ),
@@ -38,7 +37,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // context.read<AuthBloc>().add(AuthIsUserLoggedIn());
+    context.read<AuthBloc>().add(AuthIsUserLoggedIn());
   }
 
   @override
@@ -47,18 +46,17 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Blog App',
       theme: AppTheme.darkThemeMode,
-      // home: BlocSelector<AppUserCubit, AppUserState, bool>(
-      //   selector: (state) {
-      //     return state is AppUserLoggedIn;
-      //   },
-      //   builder: (context, isLoggedIn) {
-      //     if (isLoggedIn) {
-      //       return const LandingPage();
-      //     }
-      //     return const LandingPage();
-      //   },
-      // ),
-      home: const LandingPage(),
+      home: BlocSelector<AppUserCubit, AppUserState, bool>(
+        selector: (state) {
+          return state is AppUserLoggedIn;
+        },
+        builder: (context, isLoggedIn) {
+          if (isLoggedIn) {
+            return const LandingPage();
+          }
+          return const LoginPage();
+        },
+      ),
     );
   }
 }
