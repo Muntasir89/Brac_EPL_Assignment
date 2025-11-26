@@ -2,6 +2,7 @@ import 'package:branc_epl/core/common/cubit/app_user/app_user_cubit.dart';
 import 'package:branc_epl/core/theme/theme.dart';
 import 'package:branc_epl/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:branc_epl/feature/auth/presentation/pages/login_page.dart';
+import 'package:branc_epl/feature/home/presentation/bloc/transaction_bloc.dart';
 import 'package:branc_epl/feature/landing/landing_page.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/bloc/navigation_bloc.dart';
 import 'package:branc_epl/init_dependencies.main.dart';
@@ -16,10 +17,8 @@ void main() async {
       providers: [
         BlocProvider(create: (_) => serviceLocator<AppUserCubit>()),
         BlocProvider(create: (_) => serviceLocator<AuthBloc>()),
-        // BlocProvider(
-        //   create: (_) => serviceLocator<BlogBloc>(),
-        // ),
         BlocProvider(create: (_) => serviceLocator<NavigationBloc>()),
+        BlocProvider(create: (_) => serviceLocator<TransactionBloc>()),
       ],
       child: const MyApp(),
     ),

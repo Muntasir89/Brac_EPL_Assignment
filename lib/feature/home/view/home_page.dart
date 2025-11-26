@@ -1,87 +1,30 @@
+import 'package:branc_epl/core/common/cubit/app_user/app_user_cubit.dart';
 import 'package:branc_epl/core/common/widgets/common_text_widget.dart';
-import 'package:branc_epl/feature/home/models/transaction_model.dart';
+import 'package:branc_epl/feature/home/presentation/bloc/transaction_bloc.dart';
+import 'package:branc_epl/feature/home/widget/add_transaction_dialog.dart';
 import 'package:branc_epl/feature/home/widget/transaction_history_item.dart';
 import 'package:branc_epl/styles/colors.dart';
 import 'package:branc_epl/styles/textstyles.dart';
 import 'package:branc_epl/utils/dimens/dimensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  // Dummy transaction data
-  static final List<TransactionModel> transactions = [
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Monthly savings',
-      date: 'Yesterday',
-      amount: '+৳500',
-      amountColor: greenShade1,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_upward,
-      iconColor: rejectedColor,
-      iconBg: rejectedBackgroundColor,
-      title: 'Withdraw',
-      subtitle: 'Emergency fund',
-      date: 'Nov 22',
-      amount: '-৳200',
-      amountColor: rejectedColor,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Salary deposit',
-      date: 'Nov 20',
-      amount: '+৳1,000',
-      amountColor: greenShade1,
-    ),
-    TransactionModel(
-      icon: Icons.swap_horiz,
-      iconColor: pendingColor,
-      iconBg: pendingBackgroundColor,
-      title: 'Transfer',
-      subtitle: 'Investment rebalancing',
-      date: 'Nov 18',
-      amount: '৳300',
-      amountColor: black,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Nov 15',
-      date: 'Nov 15',
-      amount: '+৳750',
-      amountColor: greenShade1,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_upward,
-      iconColor: rejectedColor,
-      iconBg: rejectedBackgroundColor,
-      title: 'Withdraw',
-      subtitle: 'Personal expense',
-      date: 'Nov 13',
-      amount: '-৳150',
-      amountColor: rejectedColor,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Bonus payment',
-      date: 'Nov 10',
-      amount: '+৳2,000',
-      amountColor: greenShade1,
-    ),
-  ];
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch transactions when page loads
+    final userId =
+        (context.read<AppUserCubit>().state as AppUserLoggedIn).user.id;
+    context.read<TransactionBloc>().add(TransactionGetAll(userId));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,24 +108,55 @@ class HomePage extends StatelessWidget {
 
             // Transaction List
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: transactions.length + 1, // +1 for bottom spacing
-                itemBuilder: (context, index) {
-                  if (index == transactions.length) {
-                    return const SizedBox(height: 80); // Space for bottom nav
+              child: BlocBuilder<TransactionBloc, TransactionState>(
+                builder: (context, state) {
+                  if (state is TransactionLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: blueOriginal),
+                    );
                   }
-                  final transaction = transactions[index];
-                  return TransactionHistoryItem(
-                    icon: transaction.icon,
-                    iconColor: transaction.iconColor,
-                    iconBg: transaction.iconBg,
-                    title: transaction.title,
-                    subtitle: transaction.subtitle,
-                    date: transaction.date,
-                    amount: transaction.amount,
-                    amountColor: transaction.amountColor,
-                  );
+
+                  if (state is TransactionFailure) {
+                    return Center(
+                      child: CommonTextWidget(
+                        text: state.message,
+                        style: f14w400(color: rejectedColor),
+                      ),
+                    );
+                  }
+
+                  if (state is TransactionSuccess) {
+                    if (state.transactions.isEmpty) {
+                      return Center(
+                        child: CommonTextWidget(
+                          text: 'No transactions yet',
+                          style: f14w400(color: blackShade3),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: state.transactions.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == state.transactions.length) {
+                          return const SizedBox(height: 80);
+                        }
+                        final transaction = state.transactions[index];
+                        return TransactionHistoryItem(
+                          icon: transaction.icon,
+                          iconColor: transaction.iconColor,
+                          iconBg: transaction.iconBg,
+                          title: transaction.title,
+                          subtitle: transaction.subtitle,
+                          date: transaction.date,
+                          amount: transaction.formattedAmount,
+                          amountColor: transaction.amountColor,
+                        );
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
                 },
               ),
             ),
@@ -190,7 +164,12 @@ class HomePage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => const AddTransactionDialog(),
+          );
+        },
         backgroundColor: blueOriginal,
         child: const Icon(Icons.add, color: white, size: 32),
       ),

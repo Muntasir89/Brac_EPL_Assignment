@@ -1,10 +1,14 @@
+import 'package:branc_epl/core/common/cubit/app_user/app_user_cubit.dart';
 import 'package:branc_epl/core/common/widgets/common_text_widget.dart';
 import 'package:branc_epl/feature/home/models/transaction_model.dart';
+import 'package:branc_epl/feature/home/presentation/bloc/transaction_bloc.dart';
+import 'package:branc_epl/feature/home/widget/add_transaction_dialog.dart';
 import 'package:branc_epl/feature/home/widget/transaction_history_item.dart';
 import 'package:branc_epl/styles/colors.dart';
 import 'package:branc_epl/styles/spacing.dart';
 import 'package:branc_epl/styles/textstyles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -18,87 +22,24 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
   final List<String> filters = ['All', 'Deposit', 'Withdraw'];
 
-  // All transactions
-  final List<TransactionModel> allTransactions = [
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Monthly savings',
-      date: 'Yesterday',
-      amount: '+৳500',
-      amountColor: greenShade1,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_upward,
-      iconColor: rejectedColor,
-      iconBg: rejectedBackgroundColor,
-      title: 'Withdraw',
-      subtitle: 'Emergency fund',
-      date: 'Nov 23',
-      amount: '-৳200',
-      amountColor: rejectedColor,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Salary deposit',
-      date: 'Nov 20',
-      amount: '+৳1,000',
-      amountColor: greenShade1,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_upward,
-      iconColor: rejectedColor,
-      iconBg: rejectedBackgroundColor,
-      title: 'Withdraw',
-      subtitle: 'Personal expense',
-      date: 'Nov 14',
-      amount: '-৳150',
-      amountColor: rejectedColor,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Bonus payment',
-      date: 'Nov 10',
-      amount: '+৳2,000',
-      amountColor: greenShade1,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_upward,
-      iconColor: rejectedColor,
-      iconBg: rejectedBackgroundColor,
-      title: 'Withdraw',
-      subtitle: 'Shopping',
-      date: 'Nov 08',
-      amount: '-৳350',
-      amountColor: rejectedColor,
-    ),
-    TransactionModel(
-      icon: Icons.arrow_downward,
-      iconColor: greenShade1,
-      iconBg: greenShade1.withOpacity(0.1),
-      title: 'Deposit',
-      subtitle: 'Freelance income',
-      date: 'Nov 05',
-      amount: '+৳800',
-      amountColor: greenShade1,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Fetch transactions when page loads
+    final userId =
+        (context.read<AppUserCubit>().state as AppUserLoggedIn).user.id;
+    context.read<TransactionBloc>().add(TransactionGetAll(userId));
+  }
 
-  List<TransactionModel> get filteredTransactions {
+  List<TransactionModel> getFilteredTransactions(
+    List<TransactionModel> allTransactions,
+  ) {
     if (selectedFilter == 'All') {
       return allTransactions;
     } else if (selectedFilter == 'Deposit') {
-      return allTransactions.where((t) => t.title == 'Deposit').toList();
+      return allTransactions.where((t) => t.isDeposit).toList();
     } else if (selectedFilter == 'Withdraw') {
-      return allTransactions.where((t) => t.title == 'Withdraw').toList();
+      return allTransactions.where((t) => !t.isDeposit).toList();
     }
     return allTransactions;
   }
@@ -172,14 +113,38 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
             // Transaction List
             Expanded(
-              child: filteredTransactions.isEmpty
-                  ? Center(
+              child: BlocBuilder<TransactionBloc, TransactionState>(
+                builder: (context, state) {
+                  if (state is TransactionLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: blueOriginal),
+                    );
+                  }
+
+                  if (state is TransactionFailure) {
+                    return Center(
                       child: CommonTextWidget(
-                        text: 'No transactions found',
-                        style: f16w400(color: blackShade3),
+                        text: state.message,
+                        style: f14w400(color: rejectedColor),
                       ),
-                    )
-                  : ListView.builder(
+                    );
+                  }
+
+                  if (state is TransactionSuccess) {
+                    final filteredTransactions = getFilteredTransactions(
+                      state.transactions,
+                    );
+
+                    if (filteredTransactions.isEmpty) {
+                      return Center(
+                        child: CommonTextWidget(
+                          text: 'No transactions found',
+                          style: f16w400(color: blackShade3),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: filteredTransactions.length + 1,
                       itemBuilder: (context, index) {
@@ -195,14 +160,34 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                           title: transaction.title,
                           subtitle: transaction.subtitle,
                           date: transaction.date,
-                          amount: transaction.amount,
+                          amount: transaction.formattedAmount,
                           amountColor: transaction.amountColor,
                         );
                       },
+                    );
+                  }
+
+                  return Center(
+                    child: CommonTextWidget(
+                      text: 'No transactions yet',
+                      style: f16w400(color: blackShade3),
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => const AddTransactionDialog(),
+          );
+        },
+        backgroundColor: blueOriginal,
+        child: const Icon(Icons.add, color: white, size: 32),
       ),
     );
   }

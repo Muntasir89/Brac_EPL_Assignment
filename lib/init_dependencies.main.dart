@@ -8,6 +8,13 @@ import 'package:branc_epl/feature/auth/domain/usecases/user_login.dart';
 import 'package:branc_epl/feature/auth/domain/usecases/user_logout.dart';
 import 'package:branc_epl/feature/auth/domain/usecases/user_sign_up.dart';
 import 'package:branc_epl/feature/auth/presentation/bloc/auth_bloc.dart';
+import 'package:branc_epl/feature/home/data/datasources/transaction_remote_data_source.dart';
+import 'package:branc_epl/feature/home/data/repositories/transaction_repository_impl.dart';
+import 'package:branc_epl/feature/home/domain/repository/transaction_repository.dart';
+import 'package:branc_epl/feature/home/domain/usecases/add_transaction.dart';
+import 'package:branc_epl/feature/home/domain/usecases/delete_transaction.dart';
+import 'package:branc_epl/feature/home/domain/usecases/get_transactions.dart';
+import 'package:branc_epl/feature/home/presentation/bloc/transaction_bloc.dart';
 import 'package:branc_epl/feature/landing/widget/bottom_appbar/bloc/navigation_bloc.dart';
 import 'package:branc_epl/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,6 +28,7 @@ Future<void> initDependencies() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   _initAuth();
   _initLanding();
+  _initTransaction();
   // final supabase = await Supabase.initialize(
   //   url: AppSecrets.supabaseUrl,
   //   anonKey: AppSecrets.supabaseAnonKey,
@@ -105,4 +113,28 @@ void _initLanding() {
   //     getAllBlogs: serviceLocator(),
   //   ),
   // );
+}
+
+void _initTransaction() {
+  serviceLocator
+    // DataSource
+    ..registerFactory<TransactionRemoteDataSource>(
+      () => TransactionRemoteDataSourceImpl(serviceLocator()),
+    )
+    // Repository
+    ..registerFactory<TransactionRepository>(
+      () => TransactionRepositoryImpl(serviceLocator()),
+    )
+    // Usecases
+    ..registerFactory(() => GetTransactions(serviceLocator()))
+    ..registerFactory(() => AddTransaction(serviceLocator()))
+    ..registerFactory(() => DeleteTransaction(serviceLocator()))
+    // Bloc
+    ..registerLazySingleton(
+      () => TransactionBloc(
+        getTransactions: serviceLocator(),
+        addTransaction: serviceLocator(),
+        deleteTransaction: serviceLocator(),
+      ),
+    );
 }
